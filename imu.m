@@ -56,6 +56,14 @@ function [accl_avg] = avg(accl_filt)
   ones(len,1)/len;
 endfunction
 
+function [output] = intg(x, y)
+  idx = 1;
+  output(idx) = 0;
+  for i=2:1:size(x,2)
+    idx++;
+    output(idx) = output(idx-1) + (x(i) - x(i-1)) * ((y(i) + y(i-1))/2);
+  endfor
+endfunction
 
 [tsAccl1, accl1, tsGyro1, gyro1] = readData("baseline 1.csv");
 [tsAccl2, accl2, tsGyro2, gyro2] = readData("slide 1.csv");
@@ -72,4 +80,19 @@ endfunction
 len = min(size(accl_filt1, 2), size(accl_filt2, 2));
 diff = accl_filt1(1:3,10:len) .- (sum(accl_filt2(1:3,10:len), 2)/(len-11));
 
-plotData(tsAccl1(10:len), diff);
+tsAccl1(10:len) = tsAccl1(10:len) .- tsAccl1(10);
+
+[intgOut1] = intg(tsAccl1(10:len), diff(1,:));
+[intgOut2] = intg(tsAccl1(10:len), diff(2,:));
+[intgOut3] = intg(tsAccl1(10:len), diff(3,:));
+
+plotData(tsAccl1(10:len), diff(1,:));
+plotData(tsAccl1(10:len), diff(2,:));
+plotData(tsAccl1(10:len), diff(3,:));
+plotData(tsAccl1(10:len), intgOut1);
+plotData(tsAccl1(10:len), intgOut2);
+plotData(tsAccl1(10:len), intgOut3);
+
+#[intgTest] = intg(tsAccl1(10:20), ones(1,11));
+#plotData(tsAccl1(10:20), ones(1,11));
+#plotData(tsAccl1(10:20), intgTest);
