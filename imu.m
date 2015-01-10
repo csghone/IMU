@@ -9,8 +9,6 @@ function [tsAccl, accl, tsGyro, gyro] = readData (filename)
   while(true)
       [ts, type, x, y, z, count, errorMsg] = fscanf(fid, "%g, %s %g, %g, %g", "C");
       if(count == 0)
-          acclIndex
-          gyroIndex
           break;
       endif
       if (type == "ACCL,")
@@ -28,8 +26,7 @@ function [tsAccl, accl, tsGyro, gyro] = readData (filename)
           gyroIndex++;
       endif
   endwhile
-  printf "Done\n"
-  fclose(fid)
+  fclose(fid);
   tsAccl = tsAccl - tsAccl(1);
   tsGyro = tsGyro - tsGyro(1);
 endfunction
@@ -54,6 +51,12 @@ function plotData(tsAccl, accl_filt)
   end
 endfunction
 
+function [accl_avg] = avg(accl_filt)
+  len = size(accl_filt, 2);
+  ones(len,1)/len;
+endfunction
+
+
 [tsAccl1, accl1, tsGyro1, gyro1] = readData("baseline 1.csv");
 [tsAccl2, accl2, tsGyro2, gyro2] = readData("slide 1.csv");
 
@@ -63,8 +66,10 @@ endfunction
 [gyro_filt1] = filterData(gyro1);
 [gyro_filt2] = filterData(gyro2);
 
-plotData(tsAccl1, accl_filt1);
-plotData(tsAccl2, accl_filt2);
+#plotData(tsAccl1, accl_filt1);
+#plotData(tsAccl2, accl_filt2);
 
-hold
-accl_filt1(4,100:120)
+len = min(size(accl_filt1, 2), size(accl_filt2, 2));
+diff = accl_filt1(1:3,10:len) .- (sum(accl_filt2(1:3,10:len), 2)/(len-11));
+
+plotData(tsAccl1(10:len), diff);
